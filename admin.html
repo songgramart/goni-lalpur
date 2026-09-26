@@ -1,47 +1,1349 @@
 <!DOCTYPE html>
-<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Goni Communication Admin</title>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Goni Communication Admin</title>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans Bengali",sans-serif;background:#eef2f7;color:#172033}.top{background:#0b1220;color:#fff;padding:18px}.wrap{max-width:1050px;margin:auto}.top .wrap{display:flex;justify-content:space-between;align-items:center}.box{background:#fff;margin:18px 0;padding:20px;border-radius:14px;box-shadow:0 3px 15px #0001}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabs button,.btn{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;background:#172033;color:#fff}.tabs button.active{background:#d7192d}.row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field{margin-bottom:12px}.field label{display:block;font-weight:bold;margin-bottom:5px}.field input,.field textarea{width:100%;padding:10px;border:1px solid #ccd5e1;border-radius:8px;font:inherit}.field textarea{min-height:90px}.item{border:1px solid #e0e6ef;padding:14px;border-radius:10px;margin:10px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}.actions button{margin:3px}.danger{background:#dc2626!important}.green{background:#16a34a!important}.hidden{display:none}.note{background:#fff7ed;padding:12px;border-radius:8px;border-left:4px solid #f97316}.small{font-size:13px;color:#667085}@media(max-width:700px){.row{grid-template-columns:1fr}.item{display:block}.actions{margin-top:8px}}
-</style></head>
-<body>
-<div class="top"><div class="wrap"><div><b>Goni Communication</b><div class="small" style="color:#cbd5e1">Admin Panel</div></div><a href="index.html" style="color:#fff">🌐 Website</a></div></div>
-<div class="wrap">
-<div id="login" class="box"><h2>🔐 Admin Login</h2><p>এই প্রথম version-এ password আপনার browser-এর মধ্যেই রাখা হবে।</p><div class="field"><label>Password</label><input id="pass" type="password" placeholder="Default: 1234"></div><button class="btn" onclick="login()">Login</button><p id="loginMsg"></p></div>
-<div id="panel" class="hidden">
-<div class="tabs"><button onclick="tab('site',this)" class="active">Site Info</button><button onclick="tab('tech',this)">Technicians</button><button onclick="tab('services',this)">Services</button><button onclick="tab('apps',this)">Apps</button><button onclick="tab('backup',this)">Backup</button></div>
-<div id="site" class="box page"><h2>📝 Website Info Edit</h2><div class="row"><div class="field"><label>ISP Name</label><input id="sName"></div><div class="field"><label>Your Name</label><input id="sOwner"></div></div><div class="field"><label>Phone</label><input id="sPhone"></div><div class="field"><label>Home Intro</label><textarea id="sIntro"></textarea></div><div class="field"><label>About Description</label><textarea id="sDesc"></textarea></div><button class="btn green" onclick="saveSite()">Save Changes</button></div>
-<div id="tech" class="box page hidden"><h2>👨‍🔧 Technicians</h2><button class="btn green" onclick="newTech()">+ Add Technician</button><div id="techList"></div><div id="techForm" class="hidden"></div></div>
-<div id="services" class="box page hidden"><h2>🛠️ Services</h2><button class="btn green" onclick="newService()">+ Add Service</button><div id="serviceList"></div><div id="serviceForm" class="hidden"></div></div>
-<div id="apps" class="box page hidden"><h2>📱 Apps / Links</h2><button class="btn green" onclick="newApp()">+ Add App</button><div id="appList"></div><div id="appForm" class="hidden"></div></div>
-<div id="backup" class="box page hidden"><h2>💾 Backup / Restore</h2><p>আপনার browser-এর data JSON file হিসেবে backup রাখতে পারবেন।</p><button class="btn" onclick="downloadBackup()">Download Backup</button> <label class="btn" style="display:inline-block">Restore JSON <input id="restore" type="file" accept=".json" style="display:none" onchange="restoreBackup(event)"></label><hr><p class="note"><b>গুরুত্বপূর্ণ:</b> এই version local browser storage ব্যবহার করে। তাই এটি একই browser/device-এ edit করলে website-ও একই browser-এ update হবে। Public online website-এ সব device থেকে update করার জন্য পরে free database/backend (যেমন Supabase/Firebase) connect করতে হবে।</p><button class="btn danger" onclick="resetData()">Reset Demo Data</button></div>
-</div></div>
-<script src="data.js"></script><script>
-let data, editId;
-function login(){if(document.getElementById("pass").value==="1234"){document.getElementById("login").classList.add("hidden");document.getElementById("panel").classList.remove("hidden");data=getData();renderAll()}else document.getElementById("loginMsg").textContent="Password ভুল। Default password: 1234";}
-function tab(id,btn){document.querySelectorAll(".page").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");}
-function persist(){saveData(data);renderAll()}
-function esc(s=""){return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
-function renderAll(){
- sName.value=data.site.name;sOwner.value=data.site.owner;sPhone.value=data.site.phone;sIntro.value=data.site.intro;sDesc.value=data.site.description;
- techList.innerHTML=data.technicians.map(t=>`<div class="item"><div><b>${esc(t.name)}</b><br><span class="small">${esc(t.role)} | ${esc(t.phone)}</span></div><div class="actions"><button class="btn" onclick="editTech(${t.id})">Edit</button><button class="btn danger" onclick="delTech(${t.id})">Delete</button></div></div>`).join("");
- serviceList.innerHTML=data.services.map(s=>`<div class="item"><div><b>${s.icon} ${esc(s.title)}</b><br><span class="small">${esc(s.text)}</span></div><div class="actions"><button class="btn" onclick="editService(${s.id})">Edit</button><button class="btn danger" onclick="delService(${s.id})">Delete</button></div></div>`).join("");
- appList.innerHTML=data.apps.map(a=>`<div class="item"><div><b>${a.icon} ${esc(a.title)}</b><br><span class="small">${esc(a.url)}</span></div><div class="actions"><button class="btn" onclick="editApp(${a.id})">Edit</button><button class="btn danger" onclick="delApp(${a.id})">Delete</button></div></div>`).join("");
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,"Noto Sans Bengali",sans-serif;
+  background:#eef2f7;
+  color:#172033;
 }
-function saveSite(){data.site={name:sName.value,owner:sOwner.value,phone:sPhone.value,intro:sIntro.value,description:sDesc.value};persist();alert("Saved! Website খুলে refresh করুন।")}
-function newTech(){showTech({id:Date.now(),name:"",role:"Technician",phone:"",whatsapp:"",image:"songgram.jpg"},true)}
-function editTech(id){showTech(data.technicians.find(x=>x.id===id),false)}
-function showTech(t,isNew){techForm.classList.remove("hidden");techForm.innerHTML=`<hr><h3>${isNew?"Add":"Edit"} Technician</h3><div class="row"><div class="field"><label>Name</label><input id="tName" value="${esc(t.name)}"></div><div class="field"><label>Role</label><input id="tRole" value="${esc(t.role)}"></div></div><div class="row"><div class="field"><label>Phone</label><input id="tPhone" value="${esc(t.phone)}"></div><div class="field"><label>WhatsApp (blank = phone)</label><input id="tWA" value="${esc(t.whatsapp||"")}"></div></div><div class="field"><label>Image file name (must be inside website folder)</label><input id="tImg" value="${esc(t.image||"")}"></div><button class="btn green" onclick="saveTech(${t.id},${isNew})">Save</button> <button class="btn" onclick="techForm.classList.add('hidden')">Cancel</button>`}
-function saveTech(id,isNew){let t={id,name:tName.value,role:tRole.value,phone:tPhone.value,whatsapp:tWA.value,image:tImg.value||"songgram.jpg"};if(isNew)data.technicians.push(t);else data.technicians=data.technicians.map(x=>x.id===id?t:x);persist();techForm.classList.add("hidden")}
-function delTech(id){if(confirm("Delete this technician?")){data.technicians=data.technicians.filter(x=>x.id!==id);persist()}}
-function newService(){showService({id:Date.now(),icon:"🛠️",title:"",text:""},true)} function editService(id){showService(data.services.find(x=>x.id===id),false)}
-function showService(s,isNew){serviceForm.classList.remove("hidden");serviceForm.innerHTML=`<hr><h3>${isNew?"Add":"Edit"} Service</h3><div class="row"><div class="field"><label>Icon</label><input id="svIcon" value="${esc(s.icon)}"></div><div class="field"><label>Title</label><input id="svTitle" value="${esc(s.title)}"></div></div><div class="field"><label>Description</label><textarea id="svText">${esc(s.text)}</textarea></div><button class="btn green" onclick="saveService(${s.id},${isNew})">Save</button> <button class="btn" onclick="serviceForm.classList.add('hidden')">Cancel</button>`}
-function saveService(id,isNew){let s={id,icon:svIcon.value,title:svTitle.value,text:svText.value};if(isNew)data.services.push(s);else data.services=data.services.map(x=>x.id===id?s:x);persist();serviceForm.classList.add("hidden")}
-function delService(id){if(confirm("Delete this service?")){data.services=data.services.filter(x=>x.id!==id);persist()}}
-function newApp(){showApp({id:Date.now(),icon:"📱",title:"",text:"",url:"https://"},true)} function editApp(id){showApp(data.apps.find(x=>x.id===id),false)}
-function showApp(a,isNew){appForm.classList.remove("hidden");appForm.innerHTML=`<hr><h3>${isNew?"Add":"Edit"} App</h3><div class="row"><div class="field"><label>Icon</label><input id="aIcon" value="${esc(a.icon)}"></div><div class="field"><label>App Name</label><input id="aTitle" value="${esc(a.title)}"></div></div><div class="field"><label>Description</label><textarea id="aText">${esc(a.text)}</textarea></div><div class="field"><label>Official Link</label><input id="aUrl" value="${esc(a.url)}"></div><button class="btn green" onclick="saveApp(${a.id},${isNew})">Save</button> <button class="btn" onclick="appForm.classList.add('hidden')">Cancel</button>`}
-function saveApp(id,isNew){let a={id,icon:aIcon.value,title:aTitle.value,text:aText.value,url:aUrl.value};if(isNew)data.apps.push(a);else data.apps=data.apps.map(x=>x.id===id?a:x);persist();appForm.classList.add("hidden")}
-function delApp(id){if(confirm("Delete this app?")){data.apps=data.apps.filter(x=>x.id!==id);persist()}}
-function downloadBackup(){const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="goni-communication-backup.json";a.click()}
-function restoreBackup(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);saveData(data);renderAll();alert("Backup restored!")}catch(x){alert("Invalid JSON")}};r.readAsText(f)}
-function resetData(){if(confirm("সব demo data reset করবেন?")){localStorage.removeItem("goniCMS");data=getData();renderAll()}}
-</script></body></html>
+
+.top{
+  background:#0b1220;
+  color:#fff;
+  padding:18px;
+}
+
+.wrap{
+  max-width:1050px;
+  margin:auto;
+}
+
+.top .wrap{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.box{
+  background:#fff;
+  margin:18px 0;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 3px 15px #0001;
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:18px 0;
+}
+
+.tabs button,.btn{
+  border:0;
+  border-radius:8px;
+  padding:10px 14px;
+  cursor:pointer;
+  background:#172033;
+  color:#fff;
+}
+
+.tabs button.active{
+  background:#d7192d;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.field{
+  margin-bottom:12px;
+}
+
+.field label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+.field input,
+.field textarea{
+  width:100%;
+  padding:10px;
+  border:1px solid #ccd5e1;
+  border-radius:8px;
+  font:inherit;
+}
+
+.field textarea{
+  min-height:90px;
+}
+
+.item{
+  border:1px solid #e0e6ef;
+  padding:14px;
+  border-radius:10px;
+  margin:10px 0;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+
+.actions button{
+  margin:3px;
+}
+
+.danger{
+  background:#dc2626!important;
+}
+
+.green{
+  background:#16a34a!important;
+}
+
+.blue{
+  background:#2563eb!important;
+}
+
+.hidden{
+  display:none;
+}
+
+.note{
+  background:#fff7ed;
+  padding:12px;
+  border-radius:8px;
+  border-left:4px solid #f97316;
+}
+
+.small{
+  font-size:13px;
+  color:#667085;
+}
+
+.package-preview{
+  background:#0b1220;
+  color:#fff;
+  border-radius:10px;
+  padding:12px 16px;
+  display:inline-block;
+  margin-bottom:8px;
+}
+
+.package-speed{
+  font-size:26px;
+  font-weight:bold;
+}
+
+.package-price{
+  color:#e11d48;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.order-buttons{
+  margin-top:8px;
+}
+
+.order-buttons button{
+  padding:7px 11px;
+  border:0;
+  border-radius:6px;
+  cursor:pointer;
+  margin-right:4px;
+}
+
+@media(max-width:700px){
+  .row{
+    grid-template-columns:1fr;
+  }
+
+  .item{
+    display:block;
+  }
+
+  .actions{
+    margin-top:8px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+  <div class="wrap">
+    <div>
+      <b>Goni Communication</b>
+      <div class="small" style="color:#cbd5e1">Admin Panel</div>
+    </div>
+
+    <a href="index.html" style="color:#fff">🌐 Website</a>
+  </div>
+</div>
+
+
+<div class="wrap">
+
+<!-- LOGIN -->
+<div id="login" class="box">
+  <h2>🔐 Admin Login</h2>
+
+  <p>Admin Panel খুলতে password দিন।</p>
+
+  <div class="field">
+    <label>Password</label>
+    <input id="pass" type="password" placeholder="Default: 1234">
+  </div>
+
+  <button class="btn" onclick="login()">Login</button>
+
+  <p id="loginMsg"></p>
+</div>
+
+
+<!-- PANEL -->
+<div id="panel" class="hidden">
+
+  <div class="tabs">
+
+    <button onclick="tab('site',this)" class="active">
+      Site Info
+    </button>
+
+    <button onclick="tab('packages',this)">
+      📦 Packages
+    </button>
+
+    <button onclick="tab('tech',this)">
+      👨‍🔧 Technicians
+    </button>
+
+    <button onclick="tab('services',this)">
+      🛠️ Services
+    </button>
+
+    <button onclick="tab('apps',this)">
+      📱 Apps
+    </button>
+
+    <button onclick="tab('backup',this)">
+      💾 Backup
+    </button>
+
+  </div>
+
+
+<!-- SITE INFO -->
+<div id="site" class="box page">
+
+  <h2>📝 Website Info Edit</h2>
+
+  <div class="row">
+
+    <div class="field">
+      <label>ISP Name</label>
+      <input id="sName">
+    </div>
+
+    <div class="field">
+      <label>Your Name</label>
+      <input id="sOwner">
+    </div>
+
+  </div>
+
+  <div class="field">
+    <label>Phone</label>
+    <input id="sPhone">
+  </div>
+
+  <div class="field">
+    <label>Home Intro</label>
+    <textarea id="sIntro"></textarea>
+  </div>
+
+  <div class="field">
+    <label>About Description</label>
+    <textarea id="sDesc"></textarea>
+  </div>
+
+  <button class="btn green" onclick="saveSite()">
+    Save Changes
+  </button>
+
+</div>
+
+
+<!-- PACKAGES -->
+<div id="packages" class="box page hidden">
+
+  <h2>📦 Internet Packages</h2>
+
+  <p class="small">
+    এখান থেকে Homepage-এর Internet Package Add, Edit, Delete এবং Order পরিবর্তন করতে পারবেন।
+  </p>
+
+  <button class="btn green" onclick="newPackage()">
+    + Add Package
+  </button>
+
+  <div id="packageList"></div>
+
+  <div id="packageForm" class="hidden"></div>
+
+</div>
+
+
+<!-- TECHNICIANS -->
+<div id="tech" class="box page hidden">
+
+  <h2>👨‍🔧 Technicians</h2>
+
+  <button class="btn green" onclick="newTech()">
+    + Add Technician
+  </button>
+
+  <div id="techList"></div>
+
+  <div id="techForm" class="hidden"></div>
+
+</div>
+
+
+<!-- SERVICES -->
+<div id="services" class="box page hidden">
+
+  <h2>🛠️ Services</h2>
+
+  <button class="btn green" onclick="newService()">
+    + Add Service
+  </button>
+
+  <div id="serviceList"></div>
+
+  <div id="serviceForm" class="hidden"></div>
+
+</div>
+
+
+<!-- APPS -->
+<div id="apps" class="box page hidden">
+
+  <h2>📱 Apps / Links</h2>
+
+  <button class="btn green" onclick="newApp()">
+    + Add App
+  </button>
+
+  <div id="appList"></div>
+
+  <div id="appForm" class="hidden"></div>
+
+</div>
+
+
+<!-- BACKUP -->
+<div id="backup" class="box page hidden">
+
+  <h2>💾 Backup / Restore</h2>
+
+  <p>
+    আপনার browser-এর data JSON file হিসেবে backup রাখতে পারবেন।
+  </p>
+
+  <button class="btn" onclick="downloadBackup()">
+    Download Backup
+  </button>
+
+  <label class="btn" style="display:inline-block">
+    Restore JSON
+    <input
+      id="restore"
+      type="file"
+      accept=".json"
+      style="display:none"
+      onchange="restoreBackup(event)"
+    >
+  </label>
+
+  <hr>
+
+  <p class="note">
+    <b>গুরুত্বপূর্ণ:</b>
+    এই version local browser storage ব্যবহার করে।
+    তাই একই browser/device-এ edit করলে data সেখানেই থাকবে।
+    সব device থেকে public website update করার জন্য পরে database/backend প্রয়োজন হবে।
+  </p>
+
+  <button class="btn danger" onclick="resetData()">
+    Reset Demo Data
+  </button>
+
+</div>
+
+</div>
+</div>
+
+
+<script src="data.js"></script>
+
+<script>
+
+let data;
+let editId;
+
+
+/* LOGIN */
+
+function login(){
+
+  if(document.getElementById("pass").value==="1234"){
+
+    document.getElementById("login").classList.add("hidden");
+
+    document.getElementById("panel").classList.remove("hidden");
+
+    data=getData();
+
+    if(!Array.isArray(data.packages)){
+      data.packages=[];
+    }
+
+    renderAll();
+
+  }else{
+
+    document.getElementById("loginMsg").textContent=
+      "Password ভুল। Default password: 1234";
+
+  }
+}
+
+
+/* TAB */
+
+function tab(id,btn){
+
+  document.querySelectorAll(".page")
+    .forEach(x=>x.classList.add("hidden"));
+
+  document.getElementById(id)
+    .classList.remove("hidden");
+
+  document.querySelectorAll(".tabs button")
+    .forEach(x=>x.classList.remove("active"));
+
+  btn.classList.add("active");
+
+}
+
+
+/* SAVE */
+
+function persist(){
+
+  saveData(data);
+
+  renderAll();
+
+}
+
+
+/* ESCAPE */
+
+function esc(s=""){
+
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+
+}
+
+
+/* RENDER ALL */
+
+function renderAll(){
+
+  sName.value=data.site.name;
+  sOwner.value=data.site.owner;
+  sPhone.value=data.site.phone;
+  sIntro.value=data.site.intro;
+  sDesc.value=data.site.description;
+
+
+  /* TECHNICIANS */
+
+  techList.innerHTML=data.technicians.map(t=>`
+
+    <div class="item">
+
+      <div>
+        <b>${esc(t.name)}</b>
+        <br>
+        <span class="small">
+          ${esc(t.role)} | ${esc(t.phone)}
+        </span>
+      </div>
+
+      <div class="actions">
+
+        <button class="btn"
+          onclick="editTech(${t.id})">
+          Edit
+        </button>
+
+        <button class="btn danger"
+          onclick="delTech(${t.id})">
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+
+
+  /* SERVICES */
+
+  serviceList.innerHTML=data.services.map(s=>`
+
+    <div class="item">
+
+      <div>
+        <b>${s.icon} ${esc(s.title)}</b>
+        <br>
+        <span class="small">
+          ${esc(s.text)}
+        </span>
+      </div>
+
+      <div class="actions">
+
+        <button class="btn"
+          onclick="editService(${s.id})">
+          Edit
+        </button>
+
+        <button class="btn danger"
+          onclick="delService(${s.id})">
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+
+
+  /* APPS */
+
+  appList.innerHTML=data.apps.map(a=>`
+
+    <div class="item">
+
+      <div>
+        <b>${a.icon} ${esc(a.title)}</b>
+        <br>
+        <span class="small">
+          ${esc(a.url)}
+        </span>
+      </div>
+
+      <div class="actions">
+
+        <button class="btn"
+          onclick="editApp(${a.id})">
+          Edit
+        </button>
+
+        <button class="btn danger"
+          onclick="delApp(${a.id})">
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+
+
+  /* PACKAGES */
+
+  packageList.innerHTML=data.packages.map((p,index)=>`
+
+    <div class="item">
+
+      <div style="flex:1">
+
+        <div class="package-preview">
+
+          <div class="package-speed">
+            ${esc(p.speed)}
+          </div>
+
+        </div>
+
+        <br>
+
+        <b>${esc(p.name)}</b>
+
+        <br>
+
+        <span class="package-price">
+          ৳${esc(p.price)}
+        </span>
+        /month
+
+        <br><br>
+
+        <span class="small">
+          ${p.features.map(f=>"✓ "+esc(f)).join(" • ")}
+        </span>
+
+        <div class="order-buttons">
+
+          <button
+            onclick="movePackage(${index},-1)">
+            ⬆️
+          </button>
+
+          <button
+            onclick="movePackage(${index},1)">
+            ⬇️
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="actions">
+
+        <button class="btn"
+          onclick="editPackage(${p.id})">
+          Edit
+        </button>
+
+        <button class="btn danger"
+          onclick="delPackage(${p.id})">
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+
+}
+
+
+/* SITE */
+
+function saveSite(){
+
+  data.site={
+    name:sName.value,
+    owner:sOwner.value,
+    phone:sPhone.value,
+    intro:sIntro.value,
+    description:sDesc.value
+  };
+
+  persist();
+
+  alert("Website information saved!");
+
+}
+
+
+/* =========================
+   PACKAGE MANAGEMENT
+========================= */
+
+function newPackage(){
+
+  showPackage({
+
+    id:Date.now(),
+
+    speed:"10 Mbps",
+
+    name:"NEW-PACKAGE",
+
+    price:"500",
+
+    features:[
+      "Reliable internet",
+      "Multiple devices",
+      "Local customer support"
+    ]
+
+  },true);
+
+}
+
+
+function editPackage(id){
+
+  const p=data.packages.find(x=>x.id===id);
+
+  if(p){
+    showPackage(p,false);
+  }
+
+}
+
+
+function showPackage(p,isNew){
+
+  packageForm.classList.remove("hidden");
+
+  packageForm.innerHTML=`
+
+    <hr>
+
+    <h3>
+      ${isNew?"➕ Add":"✏️ Edit"} Internet Package
+    </h3>
+
+    <div class="row">
+
+      <div class="field">
+        <label>Speed</label>
+        <input
+          id="pSpeed"
+          value="${esc(p.speed)}"
+          placeholder="20 Mbps">
+      </div>
+
+      <div class="field">
+        <label>Package Name</label>
+        <input
+          id="pName"
+          value="${esc(p.name)}"
+          placeholder="ULTRA-20">
+      </div>
+
+    </div>
+
+
+    <div class="field">
+
+      <label>Price (৳ / month)</label>
+
+      <input
+        id="pPrice"
+        value="${esc(p.price)}"
+        placeholder="550">
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Features
+        <span class="small">
+          — প্রতিটি feature নতুন লাইনে লিখুন
+        </span>
+      </label>
+
+      <textarea
+        id="pFeatures"
+        placeholder="Reliable home internet&#10;Browsing and social media&#10;Local customer support">${esc((p.features||[]).join("\n"))}</textarea>
+
+    </div>
+
+
+    <button
+      class="btn green"
+      onclick="savePackage(${p.id},${isNew})">
+      Save Package
+    </button>
+
+    <button
+      class="btn"
+      onclick="packageForm.classList.add('hidden')">
+      Cancel
+    </button>
+
+  `;
+
+}
+
+
+/* SAVE PACKAGE */
+
+function savePackage(id,isNew){
+
+  const features=pFeatures.value
+    .split("\n")
+    .map(x=>x.trim())
+    .filter(x=>x!=="");
+
+
+  const p={
+
+    id:id,
+
+    speed:pSpeed.value.trim(),
+
+    name:pName.value.trim(),
+
+    price:pPrice.value.trim(),
+
+    features:features
+
+  };
+
+
+  if(isNew){
+
+    data.packages.push(p);
+
+  }else{
+
+    data.packages=
+      data.packages.map(x=>x.id===id?p:x);
+
+  }
+
+
+  persist();
+
+  packageForm.classList.add("hidden");
+
+  alert("Package saved!");
+
+}
+
+
+/* DELETE PACKAGE */
+
+function delPackage(id){
+
+  if(confirm("এই package delete করবেন?")){
+
+    data.packages=
+      data.packages.filter(x=>x.id!==id);
+
+    persist();
+
+  }
+
+}
+
+
+/* MOVE PACKAGE */
+
+function movePackage(index,direction){
+
+  const newIndex=index+direction;
+
+  if(newIndex<0 || newIndex>=data.packages.length){
+    return;
+  }
+
+  const temp=data.packages[index];
+
+  data.packages[index]=
+    data.packages[newIndex];
+
+  data.packages[newIndex]=temp;
+
+  persist();
+
+}
+
+
+/* =========================
+   TECHNICIANS
+========================= */
+
+function newTech(){
+
+  showTech({
+
+    id:Date.now(),
+    name:"",
+    role:"Technician",
+    phone:"",
+    whatsapp:"",
+    image:"songgram.jpg"
+
+  },true);
+
+}
+
+
+function editTech(id){
+
+  showTech(
+    data.technicians.find(x=>x.id===id),
+    false
+  );
+
+}
+
+
+function showTech(t,isNew){
+
+  techForm.classList.remove("hidden");
+
+  techForm.innerHTML=`
+
+    <hr>
+
+    <h3>
+      ${isNew?"Add":"Edit"} Technician
+    </h3>
+
+    <div class="row">
+
+      <div class="field">
+        <label>Name</label>
+        <input id="tName" value="${esc(t.name)}">
+      </div>
+
+      <div class="field">
+        <label>Role</label>
+        <input id="tRole" value="${esc(t.role)}">
+      </div>
+
+    </div>
+
+    <div class="row">
+
+      <div class="field">
+        <label>Phone</label>
+        <input id="tPhone" value="${esc(t.phone)}">
+      </div>
+
+      <div class="field">
+        <label>WhatsApp</label>
+        <input id="tWA" value="${esc(t.whatsapp||"")}">
+      </div>
+
+    </div>
+
+    <div class="field">
+
+      <label>Image file name</label>
+
+      <input
+        id="tImg"
+        value="${esc(t.image||"")}">
+
+    </div>
+
+    <button
+      class="btn green"
+      onclick="saveTech(${t.id},${isNew})">
+      Save
+    </button>
+
+    <button
+      class="btn"
+      onclick="techForm.classList.add('hidden')">
+      Cancel
+    </button>
+
+  `;
+
+}
+
+
+function saveTech(id,isNew){
+
+  let t={
+
+    id:id,
+    name:tName.value,
+    role:tRole.value,
+    phone:tPhone.value,
+    whatsapp:tWA.value,
+    image:tImg.value||"songgram.jpg"
+
+  };
+
+  if(isNew){
+
+    data.technicians.push(t);
+
+  }else{
+
+    data.technicians=
+      data.technicians.map(x=>x.id===id?t:x);
+
+  }
+
+  persist();
+
+  techForm.classList.add("hidden");
+
+}
+
+
+function delTech(id){
+
+  if(confirm("Delete this technician?")){
+
+    data.technicians=
+      data.technicians.filter(x=>x.id!==id);
+
+    persist();
+
+  }
+
+}
+
+
+/* =========================
+   SERVICES
+========================= */
+
+function newService(){
+
+  showService({
+
+    id:Date.now(),
+    icon:"🛠️",
+    title:"",
+    text:""
+
+  },true);
+
+}
+
+
+function editService(id){
+
+  showService(
+    data.services.find(x=>x.id===id),
+    false
+  );
+
+}
+
+
+function showService(s,isNew){
+
+  serviceForm.classList.remove("hidden");
+
+  serviceForm.innerHTML=`
+
+    <hr>
+
+    <h3>
+      ${isNew?"Add":"Edit"} Service
+    </h3>
+
+    <div class="row">
+
+      <div class="field">
+        <label>Icon</label>
+        <input id="svIcon" value="${esc(s.icon)}">
+      </div>
+
+      <div class="field">
+        <label>Title</label>
+        <input id="svTitle" value="${esc(s.title)}">
+      </div>
+
+    </div>
+
+    <div class="field">
+
+      <label>Description</label>
+
+      <textarea id="svText">${esc(s.text)}</textarea>
+
+    </div>
+
+    <button
+      class="btn green"
+      onclick="saveService(${s.id},${isNew})">
+      Save
+    </button>
+
+    <button
+      class="btn"
+      onclick="serviceForm.classList.add('hidden')">
+      Cancel
+    </button>
+
+  `;
+
+}
+
+
+function saveService(id,isNew){
+
+  let s={
+
+    id:id,
+    icon:svIcon.value,
+    title:svTitle.value,
+    text:svText.value
+
+  };
+
+  if(isNew){
+
+    data.services.push(s);
+
+  }else{
+
+    data.services=
+      data.services.map(x=>x.id===id?s:x);
+
+  }
+
+  persist();
+
+  serviceForm.classList.add("hidden");
+
+}
+
+
+function delService(id){
+
+  if(confirm("Delete this service?")){
+
+    data.services=
+      data.services.filter(x=>x.id!==id);
+
+    persist();
+
+  }
+
+}
+
+
+/* =========================
+   APPS
+========================= */
+
+function newApp(){
+
+  showApp({
+
+    id:Date.now(),
+    icon:"📱",
+    title:"",
+    text:"",
+    url:"https://"
+
+  },true);
+
+}
+
+
+function editApp(id){
+
+  showApp(
+    data.apps.find(x=>x.id===id),
+    false
+  );
+
+}
+
+
+function showApp(a,isNew){
+
+  appForm.classList.remove("hidden");
+
+  appForm.innerHTML=`
+
+    <hr>
+
+    <h3>
+      ${isNew?"Add":"Edit"} App
+    </h3>
+
+    <div class="row">
+
+      <div class="field">
+        <label>Icon</label>
+        <input id="aIcon" value="${esc(a.icon)}">
+      </div>
+
+      <div class="field">
+        <label>App Name</label>
+        <input id="aTitle" value="${esc(a.title)}">
+      </div>
+
+    </div>
+
+    <div class="field">
+
+      <label>Description</label>
+
+      <textarea id="aText">${esc(a.text)}</textarea>
+
+    </div>
+
+    <div class="field">
+
+      <label>Official Link</label>
+
+      <input id="aUrl" value="${esc(a.url)}">
+
+    </div>
+
+    <button
+      class="btn green"
+      onclick="saveApp(${a.id},${isNew})">
+      Save
+    </button>
+
+    <button
+      class="btn"
+      onclick="appForm.classList.add('hidden')">
+      Cancel
+    </button>
+
+  `;
+
+}
+
+
+function saveApp(id,isNew){
+
+  let a={
+
+    id:id,
+    icon:aIcon.value,
+    title:aTitle.value,
+    text:aText.value,
+    url:aUrl.value
+
+  };
+
+  if(isNew){
+
+    data.apps.push(a);
+
+  }else{
+
+    data.apps=
+      data.apps.map(x=>x.id===id?a:x);
+
+  }
+
+  persist();
+
+  appForm.classList.add("hidden");
+
+}
+
+
+function delApp(id){
+
+  if(confirm("Delete this app?")){
+
+    data.apps=
+      data.apps.filter(x=>x.id!==id);
+
+    persist();
+
+  }
+
+}
+
+
+/* =========================
+   BACKUP
+========================= */
+
+function downloadBackup(){
+
+  const b=new Blob(
+    [JSON.stringify(data,null,2)],
+    {type:"application/json"}
+  );
+
+  const a=document.createElement("a");
+
+  a.href=URL.createObjectURL(b);
+
+  a.download="goni-communication-backup.json";
+
+  a.click();
+
+}
+
+
+function restoreBackup(e){
+
+  const f=e.target.files[0];
+
+  if(!f)return;
+
+  const r=new FileReader();
+
+  r.onload=()=>{
+
+    try{
+
+      data=JSON.parse(r.result);
+
+      if(!Array.isArray(data.packages)){
+        data.packages=[];
+      }
+
+      saveData(data);
+
+      renderAll();
+
+      alert("Backup restored!");
+
+    }catch(x){
+
+      alert("Invalid JSON");
+
+    }
+
+  };
+
+  r.readAsText(f);
+
+}
+
+
+function resetData(){
+
+  if(confirm("সব demo data reset করবেন?")){
+
+    localStorage.removeItem("goniCMS");
+
+    data=getData();
+
+    renderAll();
+
+  }
+
+}
+
+</script>
+
+</body>
+</html>
