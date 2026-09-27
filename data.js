@@ -23,14 +23,14 @@ const DEFAULT_DATA = {
       phone: "01521790585",
       whatsapp: "01521790585",
       image: "imran-ali.png"
-        },
+    },
     {
-      id: 2,
-      name: "Md Rubel Hossain",
-      role: "Jr. Technician",
-      phone: "01521790585",
-      whatsapp: "01521790585",
-      image: "rubel-all.png"
+    id: 3,
+    name: "Md Rubel Hossain",
+    role: "Junior Technician",
+    phone: "01759735850",
+    whatsapp: "01759735850",
+    image: "rubel.jpg.png"
     }
   ],
 
