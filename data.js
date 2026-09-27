@@ -30,7 +30,7 @@ const DEFAULT_DATA = {
     role: "Junior Technician",
     phone: "01759735850",
     whatsapp: "01759735850",
-    image: "rubel.jpg"
+    image: "rubel.jpg.png"
     }
   ],
 
