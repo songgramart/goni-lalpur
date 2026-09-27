@@ -2,7 +2,7 @@ const DEFAULT_DATA = {
   site: {
     name: "Goni Communication",
     owner: "Md Songgram Hossain",
-    phone: "01749532193",
+    phone: "01521790585",
     intro: "গণী কমিউনিকেশনে আপনাকে স্বাগতম। আমি ইন্টারনেট টেকনিশিয়ান। জরুরি প্রয়োজনে আমাকে কল করুন। যেকোনো সেবা দিতে আমরা আপনাদের জন্য প্রস্তুত আছি।",
     description: "আমি Goni Communication-এর একজন Internet Technician। Internet connection, fiber, router এবং সাধারণ network troubleshooting সংক্রান্ত সেবায় আপনাদের সহযোগিতা করার চেষ্টা করি।"
   },
@@ -12,8 +12,8 @@ const DEFAULT_DATA = {
       id: 1,
       name: "Md Songgram Hossain",
       role: "Internet Technician",
-      phone: "01749532193",
-      whatsapp: "01749532193",
+      phone: "01521790585",
+      whatsapp: "01521790585",
       image: "songgram.jpg"
     },
     {
