@@ -14,7 +14,7 @@ const DEFAULT_DATA = {
       role: "Internet Technician",
       phone: "01521790585",
       whatsapp: "01521790585",
-      image: "songgram.jpg"
+      image: "songgram(1).jpg"
     },
     {
       id: 2,
