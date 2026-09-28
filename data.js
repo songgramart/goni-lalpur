@@ -138,7 +138,11 @@ function getData() {
 
   try {
     const d = JSON.parse(raw);
-
+  if (Array.isArray(d.technicians) && d.technicians[0]) {
+    if (d.technicians[0].image === "songgram.jpg") {
+      d.technicians[0].image = "songgram(1).jpg";
+  }
+}
     // পুরোনো data থাকলে packages automatically যোগ হবে
     if (!Array.isArray(d.packages)) {
       d.packages = structuredClone(DEFAULT_DATA.packages);
