@@ -20,7 +20,7 @@ const DEFAULT_DATA = {
       id: 2,
       name: "Md Imran Ali",
       role: "Junior Technician",
-      phone: "01521790585",
+      phone: "+8809638932047",
       whatsapp: "01521790585",
       image: "imran-ali.png"
     },
