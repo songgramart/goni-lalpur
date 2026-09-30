@@ -56,30 +56,37 @@ const DEFAULT_DATA = {
   ],
 
   apps: [
-    {
-      id: 1,
-      icon: "📱",
-      title: "Fing",
-      text: "Network scanning ও device discovery-এর জন্য।",
-      url: "https://www.fing.com/products/fing-app/"
-    },
-    {
-      id: 2,
-      icon: "💻",
-      title: "Termius",
-      text: "SSH/Telnet server management-এর জন্য।",
-      url: "https://termius.com/download"
-    },
-    {
-      id: 3,
-      icon: "⚡",
-      title: "Speedtest",
-      text: "Internet speed test করার জন্য।",
-      url: "https://www.speedtest.net/apps"
-    }
-  ],
+  {
+    id: 1,
+    icon: "📱",
+    title: "Fing",
+    text: "Network scanning ও device discovery-এর জন্য।",
+    url: "https://www.fing.com/products/fing-app/"
+  },
+  {
+    id: 2,
+    icon: "💻",
+    title: "Termius",
+    text: "SSH/Telnet server management-এর জন্য।",
+    url: "https://termius.com/download"
+  },
+  {
+    id: 3,
+    icon: "⚡",
+    title: "Speedtest",
+    text: "Internet speed test করার জন্য।",
+    url: "https://www.speedtest.net/apps"
+  },
+  {
+    id: 4,
+    icon: "📺",
+    title: "FTV Server",
+    text: "FTV Server access করার জন্য।",
+    url: "http://30.30.30.201/"
+  }
+],
 
-  packages: [
+packages: [
     {
       id: 1,
       speed: "20 Mbps",
