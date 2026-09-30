@@ -1,4 +1,4 @@
-যেconst DEFAULT_DATA = {
+const DEFAULT_DATA = {
   site: {
     name: "Goni Communication",
     owner: "Md Songgram Hossain",
@@ -25,12 +25,12 @@
       image: "imran-ali.png"
     },
     {
-    id: 3,
-    name: "Md Rubel Hossain",
-    role: "Junior Technician",
-    phone: "01759735850",
-    whatsapp: "01759735850",
-    image: "rubel.jpg"
+      id: 3,
+      name: "Md Rubel Hossain",
+      role: "Junior Technician",
+      phone: "01759735850",
+      whatsapp: "01759735850",
+      image: "rubel.jpg"
     }
   ],
 
@@ -138,17 +138,17 @@ function getData() {
 
   try {
     const d = JSON.parse(raw);
-  if (Array.isArray(d.technicians) && d.technicians[0]) {
-    if (d.technicians[0].image === "songgram.jpg") {
-      d.technicians[0].image = "songgram(1).jpg";
-  }
-}
-    // পুরোনো data থাকলে packages automatically যোগ হবে
+
+    if (Array.isArray(d.technicians) && d.technicians[0]) {
+      if (d.technicians[0].image === "songgram.jpg") {
+        d.technicians[0].image = "songgram(1).jpg";
+      }
+    }
+
     if (!Array.isArray(d.packages)) {
       d.packages = structuredClone(DEFAULT_DATA.packages);
     }
 
-    // পুরোনো data-তে site/technicians/services/apps না থাকলে default নেওয়া হবে
     if (!d.site) {
       d.site = structuredClone(DEFAULT_DATA.site);
     }
@@ -165,7 +165,6 @@ function getData() {
       d.apps = structuredClone(DEFAULT_DATA.apps);
     }
 
-    // নতুন data browser-এ save করে রাখা
     localStorage.setItem("goniCMS", JSON.stringify(d));
 
     return d;
