@@ -83,6 +83,13 @@ const DEFAULT_DATA = {
     title: "FTV Server",
     text: "FTV Server access করার জন্য।",
     url: "http://30.30.30.201/"
+  },
+  {
+    id: 5,
+    icon: "🎬",
+    title: "Movie Server",
+    text: "নতুন নতুন মুভি দেখতে এখানে ক্লিক করুন।",
+    url: "http://10.16.100.244/dashboard.php"
   }
 ],
 
